@@ -1,13 +1,7 @@
 #include "parallel_threads.h"
 
 using namespace std;
-
 std::mutex mtx;
-void print(const string& msg) {
-    mtx.lock();
-    cout << msg;
-    mtx.unlock();
-}
 
 SolutionResult solve_jacobi_with_threads(vector<vector<float>> A, vector<float>B,
                                          int num_of_worker, int number_of_iteration, bool early_stopping) {
@@ -18,15 +12,16 @@ SolutionResult solve_jacobi_with_threads(vector<vector<float>> A, vector<float>B
     float total_barrier_time = 0;
     vector<thread> threads;
 
+    if(!IS_UNIT_TEST_RUNNING && !IS_METRICS_RUNNING){
+        cout<<"[PTH] Running with "<<num_of_worker<<" worker(s)..."<<endl;
+    }
+
+    bool break_the_loop = false; // Flag to break the loop.
+    int iteration = number_of_iteration; // When iteration is 0, the loop will break.
+    const int chunk = (int) ceil(n / num_of_worker); // Calculate the chunk size
+
     { // scope start
         uTimer utimer("Par");
-
-        if(!IS_UNIT_TEST_RUNNING && !IS_METRICS_RUNNING){
-            cout<<"[PTH] Running with "<<num_of_worker<<" worker(s)..."<<endl;
-        }
-
-        bool break_the_loop = false; // Flag to break the loop.
-        int iteration = number_of_iteration; // When iteration is 0, the loop will break.
 
         function<void()> update = [&]() -> void { // Lambda function used into the barrier.
             iteration = iteration - 1;
@@ -37,7 +32,11 @@ SolutionResult solve_jacobi_with_threads(vector<vector<float>> A, vector<float>B
                 break_the_loop = true;
                 iteration = 0;
             }else{  // If the distance is bigger than the threshold, continue the loop.
-                x = tmp_x; // Update the x vector.
+                { // scope start
+                    //uTimer copy_timer("copy");
+                    x = tmp_x; // Update the x vector.
+                    // total_copy_time += (float)copy_timer.stop_timer();
+                }
             }
         };
         barrier barrier(num_of_worker, update); // barrier for the threads
@@ -46,6 +45,7 @@ SolutionResult solve_jacobi_with_threads(vector<vector<float>> A, vector<float>B
             while (true) {
                 if (iteration == 0) // if the iteration is 0, the thread should stop.
                     break;
+
                 for (int i = start; i < end; i++) {
                     float first_term = 1 / A[i][i]; // The first term of the jacobi equation.
                     float second_term = B[i];       // The second term of the jacobi equation.
@@ -63,7 +63,9 @@ SolutionResult solve_jacobi_with_threads(vector<vector<float>> A, vector<float>B
                 { // The barrier introduces an overhead.
                     uTimer barrier_time("Barrier time");                // Start the timer
                     barrier.arrive_and_wait();
-                    total_barrier_time += (float)barrier_time.stop_timer(); // Stop the timer
+                    mtx.lock();
+                        total_barrier_time += (float)barrier_time.stop_timer(); // Stop the timer
+                    mtx.unlock();
                 }
 
                 if (break_the_loop) // If the flag is true, the thread should stop.
@@ -71,8 +73,6 @@ SolutionResult solve_jacobi_with_threads(vector<vector<float>> A, vector<float>B
             }
             return;
         };
-
-        int chunk = (int) ceil(n / num_of_worker); // Calculate the chunk size
 
         for (int i = 0; i < num_of_worker-1; i++){ // Create the threads
             int start = i * chunk;
@@ -84,16 +84,14 @@ SolutionResult solve_jacobi_with_threads(vector<vector<float>> A, vector<float>B
         for (auto& thread : threads) { // Wait for all the threads to finish.
             thread.join();
         }
-        threads.clear();
-
         time = utimer.stop_timer(); // Stop the timer.
     }
+    threads.clear();
 
     if(!IS_UNIT_TEST_RUNNING && !IS_METRICS_RUNNING){
         cout<<"[PTH] Done."<<endl;
         if(DEBUG) {
             cout << "[PTH] num_of_worker: " << num_of_worker << "" << endl;
-            cout << "[PTH] overhead: " << total_barrier_time << "" << endl;
             cout << "[PTH] norm2(x): " << norm2(x) << "" << endl;
             cout << "[PTH] Time: " << time << " ms" << endl;
             cout << endl;

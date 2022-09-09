@@ -12,6 +12,6 @@
 
 using namespace std;
 
-void plot_2_scalability(int n, int max_num_of_workers=120, int num_of_trial=10 /*per la media*/);
+void plot_2_scalability(int n, int max_num_of_workers=32, int num_of_trial=10 /*per la media*/);
 
 #endif //SPM22_ACCIARO_PROJECT_PLOT_2_SCALABILITY_H

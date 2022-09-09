@@ -11,12 +11,12 @@ SolutionResult solve_jacobi_with_fastflow(vector<vector<float>> A, vector<float>
     vector<float> x(n, 0);
     vector<float> tmp_x(n, 0);
 
+    if (!IS_UNIT_TEST_RUNNING && !IS_METRICS_RUNNING) {
+        cout << "[FF] Running with " << num_of_worker << " worker(s)..." << endl;
+    }
+
     { // scope start
         uTimer utimer("FastFlow"); // start FastFlow timer
-
-        if (!IS_UNIT_TEST_RUNNING && !IS_METRICS_RUNNING) {
-            cout << "[FF] Running with " << num_of_worker << " worker(s)..." << endl;
-        }
 
         ff::ParallelFor pf(num_of_worker);            //declaration of a ParallelFor object with nthread workers
 
@@ -45,20 +45,18 @@ SolutionResult solve_jacobi_with_fastflow(vector<vector<float>> A, vector<float>
             } else { // If the distance is bigger than the threshold, continue the loop.
                 x = tmp_x; // Update the x vector.
             }
-
         }
-
-        if (!IS_UNIT_TEST_RUNNING && !IS_METRICS_RUNNING) {
-            cout << "[FF] Done." << endl;
-            if (DEBUG) {
-                cout << "[FF] num_of_worker: " << num_of_worker << "" << endl;
-                cout << "[FF] norm2(x): " << norm2(x) << "" << endl;
-                cout << "[FF] Time: " << time << " ms" << endl;
-                cout << endl;
-            }
-        }
-
         time = utimer.stop_timer(); // stop FastFlow timer
+    }
+
+    if (!IS_UNIT_TEST_RUNNING && !IS_METRICS_RUNNING) {
+        cout << "[FF] Done." << endl;
+        if (DEBUG) {
+            cout << "[FF] num_of_worker: " << num_of_worker << "" << endl;
+            cout << "[FF] norm2(x): " << norm2(x) << "" << endl;
+            cout << "[FF] Time: " << time << " ms" << endl;
+            cout << endl;
+        }
     }
 
     SolutionResult result;

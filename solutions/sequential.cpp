@@ -11,7 +11,6 @@ SolutionResult solve_jacobi_sequentially(vector<vector<float>> A, vector<float>B
 
     vector<float> x(n, 0);
     int iteration = number_of_iteration;
-    int inner_iterations = 0;
     long long time;
     vector<float> tmp_x(n, 0);
 
@@ -29,7 +28,6 @@ SolutionResult solve_jacobi_sequentially(vector<vector<float>> A, vector<float>B
 
                 float third_term = 0;
                 for (int j = 0; j < n; j++) {   // Calculates the third term of the jacobi equation.
-                    inner_iterations = inner_iterations + 1;
                     if(j!=i)
                         third_term += A[i][j] * x[j];
                 }
@@ -50,7 +48,6 @@ SolutionResult solve_jacobi_sequentially(vector<vector<float>> A, vector<float>B
     // Write the metrics
     if(!IS_UNIT_TEST_RUNNING && !IS_METRICS_RUNNING){
         cout<<"[SEQ] Number of iterations: "<<number_of_iteration<<endl;
-        cout<<"[SEQ] Number of inner iterations: "<<inner_iterations<<endl;
         cout<<"[SEQ] Time: "<<time<<" ms"<<endl;
     }
 
@@ -59,7 +56,6 @@ SolutionResult solve_jacobi_sequentially(vector<vector<float>> A, vector<float>B
         cout<<"[SEQ] Done."<<endl;
         if(DEBUG) {
             cout << "[SEQ] norm2(x): " << norm2(x) << "" << endl;
-            cout << "[SEQ] inner_iterations: " << inner_iterations << "" << endl;
             cout << "[SEQ] iteration required: " << number_of_iteration - iteration << "" << endl;
             cout << "[SEQ] Time: " << time << " ms" << endl;
             cout << endl;

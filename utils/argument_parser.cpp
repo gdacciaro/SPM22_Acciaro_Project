@@ -27,7 +27,7 @@ ArgumentValues ArgumentParser::parse_arguments(int argc, char** argv){
                 throw invalid_argument("n must be greater than 0");
             }
         }
-        if(get_key(s) == "num_of_worker" || get_key(s) == "n_w" || get_key(s) == "n_workers" || get_key(s) == "num_of_workers"){
+        if(get_key(s) == "num_of_worker" || get_key(s) == "n_w" || get_key(s) == "nw" || get_key(s) == "n_workers" || get_key(s) == "num_of_workers"){
             values.num_of_worker = stoi(get_value(s));
             if(values.num_of_worker<0){
                 throw invalid_argument("num_of_worker must be greater than 0");

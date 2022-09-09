@@ -12,6 +12,6 @@
 
 using namespace std;
 
-void plot_4_barrier_overhead(int n, int max_num_of_workers=120, int num_of_trial=10 /*per la media*/);
+void plot_4_barrier_overhead(int n, int max_num_of_workers=32, int num_of_trial=10 /*per la media*/);
 
 #endif //SPM22_ACCIARO_PROJECT_PLOT_4_BARRIER_OVERHEAD_H
